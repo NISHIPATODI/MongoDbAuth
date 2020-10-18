@@ -2,19 +2,28 @@ const express = require('express')
 const router = express.Router()
 const mongoose = require('mongoose')
 const User = mongoose.model("User")
+const Task = mongoose.model("task")
+
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { JWT_SECRET } = require('../key')
 const requirelogin = require('../middleware/requirelogin')
 
 
-router.get('/home', requirelogin, (req, res) => {
+router.get('/home', requirelogin,(req, res) => {
+//let {_id} =req.user;
+console.log("inside home "+req.body.name);
+
+console.log("inside home "+req.body.userId);
     res.send("hahahhahahahahhaahhahaha")
 })
 
+
+
+
 router.post('/signup', (req, res) => {
     const { name, email, password, pic, age, gender, weight, height } = req.body
-    if (!name || !email || !password || !age || !gender || !weight || !height) {
+   if (!name || !email || !password || !age || !gender || !weight || !height) {
         return res.status(422).json({ error: "Please fill all the details" })
     }
     User.findOne({ email: email }).then((savedUser) => {
@@ -72,6 +81,34 @@ router.post('/signin', (req, res) => {
                     console.log(err)
                 })
         })
+
+
+
+       
+})
+
+router.post('/schedule', (req, res) => {
+
+    var task = new Task({ date: '2021-02-25', taskName:"Weight gain" });
+
+    // save model to database
+    task.save(function (err, taskDetails) {
+      if (err) return console.error(err);
+      res.json(taskDetails);
+      console.log(taskDetails + " date and task scheduled");
+    });
+    
+})
+
+router.get('/allTasks', (req, res) => {
+
+   // res.send("nametask");
+   
+  let task = User.find()
+  console.log(task);
+  res.send(task);
+    
+
 })
 
 module.exports = router
