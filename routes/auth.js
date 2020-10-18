@@ -8,13 +8,19 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { JWT_SECRET } = require('../key')
 const requirelogin = require('../middleware/requirelogin')
+const requireLogin = require('../middleware/requirelogin')
 
 
 router.get('/home', requirelogin,(req, res) => {
 //let {_id} =req.user;
 console.log("inside home "+req.body.name);
 
-console.log("inside home "+req.body.userId);
+Task.save().then(user => {
+    res.json({ message: "Saved succesfully" })
+}).catch(err => {
+    console.log(err)
+})
+
     res.send("hahahhahahahahhaahhahaha")
 })
 
@@ -87,28 +93,66 @@ router.post('/signin', (req, res) => {
        
 })
 
-router.post('/schedule', (req, res) => {
-
-    var task = new Task({ date: '2021-02-25', taskName:"Weight gain" });
-
+router.post('/schedule',requirelogin, (req, res) => {
+    let userId= req.body.userId
+    let date=req.body.date
+    let taskName=req.body.taskName
+    var task = new Task({ userId:userId,date: date, taskName:taskName });
+    //console.log(userId);
+    
     // save model to database
     task.save(function (err, taskDetails) {
       if (err) return console.error(err);
       res.json(taskDetails);
-      console.log(taskDetails + " date and task scheduled");
+      console.log(taskDetails );
     });
     
 })
 
-router.get('/allTasks', (req, res) => {
-
-   // res.send("nametask");
+router.get('/userDetails', requireLogin, async (req, res) => {
+    let userId= req.body.userId
    
-  let task = User.find()
-  console.log(task);
-  res.send(task);
+    let userTask = await User.find({_id:req.body.userId}).populate("taskDetails");
+  //.populate(" taskDetails");
+  console.log(userTask);
+  res.send(userTask);
+  })
     
 
-})
+  router.get('/allTasks',(req, res) => {
+    let userId= req.body.userId
+   
+    let userTask = Task.find(function (err, userTask){
+if(err )return console.log(err);
+        console.log(userTask);
+        res.send(userTask);
+  
+    })
+
+  //.populate(" taskDetails");
+  //console.log(userTask);
+ // res.send(userTask);
+  })
+
+
+
+  router.post("/insertTask", function(req, res) {
+    // Create a new note and pass the req.body to the entry
+    Task.create(req.body)
+      .then(function(taskDetails) {
+        // If a Review was created successfully, find one Product with an `_id` equal to `req.params.id`. Update the Product to be associated with the new Review
+        // { new: true } tells the query that we want it to return the updated Product -- it returns the original by default
+        // Since our mongoose query returns a promise, we can chain another `.then` which receives the result of the query
+        return User.findOneAndUpdate({ _id: req.body.userId }, {$push: {taskDetails: taskDetails.taskName}}, { new: true });
+      })
+      .then(function(dbUser) {
+        // If we were able to successfully update a Product, send it back to the client
+        res.json(dbUser);
+      })
+      .catch(function(err) {
+        // If an error occurred, send it to the client
+        res.json(err);
+      });
+  });
 
 module.exports = router

@@ -25,8 +25,8 @@ function requireLogin(req, res, next) {
             console.log(userdata);
        
         })
-       // req.body.userId=payload._id
-            console.log("dfhgfhgh  "+user);
+       req.body.userId=payload._id
+          //  console.log("dfhgfhgh  "+user);
        
         next();
    

@@ -52,7 +52,7 @@ const taskDetails = new mongoose.Schema({
     },
     date: {
         type: String,
-       
+        
     },
     taskId: {
         type: String
